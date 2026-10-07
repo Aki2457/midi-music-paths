@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5ef">
+  <meta name="description" content="A simple Chromebook-friendly guide to trying MIDI files in Song Maker or turning them into KTK projects to play in your browser.">
+  <title>MIDI Music Paths — Song Maker &amp; KTK</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="MIDI Music Paths home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>MIDI MUSIC PATHS</span></a>
+      <span class="top-tag">MADE FOR CHROMEBOOKS</span>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">ONE MIDI · TWO WAYS TO PLAY</p>
+          <h1 id="page-title">Start with a MIDI.<br><span>Choose your music path.</span></h1>
+          <p class="lede">Try a ready-made example or use your own <code>.mid</code> file. Make a shareable Chrome Music Lab Song Maker song, or convert the MIDI into a <code>.ktk</code> project and preview it here.</p>
+          <div class="trust-row"><span><i></i>No install</span><span>Works in a browser</span><span>Simple file steps</span></div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-caption">YOUR MIDI</div>
+          <div class="mini-score"><span class="note n1"></span><span class="note n2"></span><span class="note n3"></span><span class="note n4"></span><span class="note n5"></span><span class="note n6"></span><span class="note n7"></span><span class="note n8"></span><span class="note n9"></span></div>
+          <div class="path-chip chip-song">Song Maker <b>↗</b></div>
+          <div class="path-chip chip-ktk">KTK player <b>↗</b></div>
+          <div class="art-note">Pick a route. Follow the steps. Listen.</div>
+        </div>
+      </section>
+
+      <section class="samples" id="examples" aria-labelledby="samples-title">
+        <div class="section-head"><div><p class="eyebrow">FIRST, PICK A FILE</p><h2 id="samples-title">Try one of these example MIDIs</h2></div><span class="format-pill">Small · original · Standard MIDI</span></div>
+        <p class="section-intro">Download an example to your Chromebook’s <strong>Downloads</strong> folder. Each is a simple MIDI made for testing both paths.</p>
+        <div class="sample-grid">
+          <article class="sample-card">
+            <div class="sample-art art-lilac" aria-hidden="true"><span>♪</span><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="sample-copy"><span class="sample-kicker">EASIEST START · 96 BPM</span><h3>Little Lantern</h3><p>A short, single-note melody in a steady beat.</p><a class="download-link" href="/samples/little-lantern.mid" download>Download MIDI <span aria-hidden="true">↓</span></a></div>
+          </article>
+          <article class="sample-card">
+            <div class="sample-art art-peach" aria-hidden="true"><span>♫</span><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="sample-copy"><span class="sample-kicker">TWO LAYERS · 84 BPM</span><h3>Warm Chords</h3><p>A melody and a gentle harmony on separate tracks.</p><a class="download-link" href="/samples/warm-chords.mid" download>Download MIDI <span aria-hidden="true">↓</span></a></div>
+          </article>
+          <article class="sample-card">
+            <div class="sample-art art-blue" aria-hidden="true"><span>♪</span><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="sample-copy"><span class="sample-kicker">BREEZY BEAT · 116 BPM</span><h3>Paper Kite</h3><p>A light, bouncy tune with a few shorter notes.</p><a class="download-link" href="/samples/paper-kite.mid" download>Download MIDI <span aria-hidden="true">↓</span></a></div>
+          </article>
+        </div>
+        <p class="file-tip"><b>Chromebook tip:</b> If asked, choose <strong>Save</strong>. When a tool asks you to pick a file, open <strong>Downloads</strong> in the file picker and select the MIDI you just saved.</p>
+      </section>
+
+      <section class="paths" aria-labelledby="paths-title">
+        <div class="section-head path-heading"><div><p class="eyebrow">THEN, CHOOSE WHERE TO GO</p><h2 id="paths-title">Two paths, one starting file</h2></div><span class="step-note">Use the same downloaded MIDI for either path.</span></div>
+        <div class="path-grid">
+          <article class="path-card song-card">
+            <div class="path-top"><span class="path-number">PATH 01</span><span class="path-icon" aria-hidden="true">♫</span></div>
+            <h3>Make a Song Maker song</h3>
+            <p class="path-description">Turn your MIDI into a playable Chrome Music Lab song and share link.</p>
+            <ol class="steps">
+              <li><b>Open Song Bridge</b><span>Choose the MIDI you downloaded, or another <code>.mid</code> file.</span></li>
+              <li><b>Check the preview</b><span>Adjust tempo or grid if you like. The preview happens in your browser.</span></li>
+              <li><b>Create the song link</b><span>Click <strong>Send MIDI to Google &amp; create link</strong>. This is the step that sends the converted MIDI and settings to Google.</span></li>
+            </ol>
+            <a class="action-button song-button" href="https://song-bridge-midi.vercel.app/" target="_blank" rel="noopener">Open Song Bridge <span aria-hidden="true">↗</span></a>
+            <p class="small-note">Song Maker has no MIDI import button; Song Bridge reshapes the notes for its grid. Long or complex songs may be simplified.</p>
+          </article>
+
+          <article class="path-card ktk-card">
+            <div class="path-top"><span class="path-number">PATH 02</span><span class="path-icon" aria-hidden="true">▰</span></div>
+            <h3>Convert to KTK and listen</h3>
+            <p class="path-description">Make a <code>.ktk</code> project from a MIDI, then open it in the browser player.</p>
+            <ol class="steps">
+              <li><b>Convert the MIDI</b><span>Open the KTK Converter, choose your MIDI, keep the recommended Pianica instrument, then choose <strong>Convert to .ktk</strong>.</span></li>
+              <li><b>Save the project</b><span>Download the <code>.ktk</code> file. Leave it in Downloads so it is easy to find.</span></li>
+              <li><b>Open and play</b><span>Open the KTK Player, choose the downloaded <code>.ktk</code>, then press Play.</span></li>
+            </ol>
+            <div class="button-row"><a class="action-button ktk-button" href="/ktk-converter/" target="_blank" rel="noopener">Open KTK Converter <span aria-hidden="true">↗</span></a><a class="action-button outline-button" href="/ktk-player/" target="_blank" rel="noopener">Open KTK Player <span aria-hidden="true">↗</span></a></div>
+            <p class="small-note">The player makes an experimental browser-synth preview, not Katokatone’s original sounds. Pitch and timing may be approximate.</p>
+          </article>
+        </div>
+      </section>
+
+      <aside class="privacy-strip" aria-label="How your files are handled">
+        <div class="privacy-icon" aria-hidden="true">◎</div>
+        <div><h2>Your file stays on your Chromebook until you choose otherwise</h2><p>The KTK converter and player work locally in the browser. Song Bridge also previews locally; only clicking its Google-send button sends the converted MIDI and settings to Google’s Song Maker save service to create a link.</p></div>
+      </aside>
+
+      <section class="help" aria-labelledby="help-title">
+        <p class="eyebrow">IF SOMETHING DOESN’T OPEN</p><h2 id="help-title">A quick check</h2>
+        <div class="help-grid"><p><b>Wrong file type?</b> Song Bridge and KTK Converter need a <code>.mid</code> MIDI file. The KTK Player needs a <code>.ktk</code> project—it cannot open MIDI directly.</p><p><b>File not showing?</b> In the Chromebook picker, select <strong>Downloads</strong>. If the download has not finished, wait and try again.</p><p><b>Unsupported MIDI?</b> Use a Standard MIDI type 0 or 1 file with regular musical timing. Very complex or unusual MIDI files may not convert cleanly.</p></div>
+      </section>
+    </main>
+
+    <footer class="footer"><span>MIDI MUSIC PATHS</span><span>A small, simple route from file to sound.</span><a href="#top">Back to top ↑</a></footer>
+  </div>
+</body>
+</html>

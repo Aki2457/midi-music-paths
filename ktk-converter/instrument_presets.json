@@ -1,0 +1,91 @@
+{
+  "piano": {
+    "gadgetType": 1,
+    "programNumber": 0,
+    "gainValue": 0.7952755905511811,
+    "instrumentTrackOnOff": true,
+    "programName": "ピアノ",
+    "auto_recognition": {
+      "aliases": ["piano", "acoustic grand piano"],
+      "gm_program_changes": [
+        {"program": 0, "gm_name": "Acoustic Grand Piano"}
+      ],
+      "gm_percussion_program_changes": [],
+      "provenance": {
+        "name_aliases": "The existing README identifies this sample-derived KTK preset as Piano; the Japanese programName is ピアノ.",
+        "gm_program_changes": "MIDI Association General MIDI Level 1 names patch 1 Acoustic Grand Piano. MIDI Program Change data values are 0–127, so value 0 selects GM patch 1. Sources: https://midi.org/general-midi-level-1 and https://midi.org/expanded-midi-1-0-messages-list.",
+        "gm_percussion_program_changes": "No percussion-channel mapping is established by the available KTK samples or the cited GM instrument patch list."
+      }
+    }
+  },
+  "pianica": {
+    "gadgetType": 1,
+    "programNumber": 8,
+    "gainValue": 0.7952755905511811,
+    "instrumentTrackOnOff": true,
+    "programName": "鍵盤ハーモニカ",
+    "auto_recognition": {
+      "aliases": ["pianica", "keyboard harmonica"],
+      "gm_program_changes": [],
+      "gm_percussion_program_changes": [],
+      "provenance": {
+        "name_aliases": "Pianica and keyboard harmonica are names used for this locally verified KTK preset in the existing README; programName is 鍵盤ハーモニカ.",
+        "gm_program_changes": "No General MIDI patch is treated as equivalent to the KTK keyboard-harmonica preset.",
+        "gm_percussion_program_changes": "This is a melodic KTK preset; no percussion-channel mapping is declared."
+      }
+    }
+  },
+  "clarinet": {
+    "gadgetType": 1,
+    "programNumber": 18,
+    "gainValue": 0.8152755906,
+    "instrumentTrackOnOff": true,
+    "programName": "クラリネット",
+    "auto_recognition": {
+      "aliases": ["clarinet"],
+      "gm_program_changes": [
+        {"program": 71, "gm_name": "Clarinet"}
+      ],
+      "gm_percussion_program_changes": [],
+      "provenance": {
+        "name_aliases": "The existing README identifies this sample-derived KTK preset as Clarinet; programName is クラリネット, matching GM Level 1 patch 72.",
+        "gm_program_changes": "MIDI Association General MIDI Level 1 names patch 72 Clarinet. MIDI Program Change data values are 0–127, so value 71 selects GM patch 72. Sources: https://midi.org/general-midi-level-1 and https://midi.org/expanded-midi-1-0-messages-list.",
+        "gm_percussion_program_changes": "No percussion-channel mapping is established by the available KTK samples or the cited GM instrument patch list."
+      }
+    }
+  },
+  "drum-kit-1": {
+    "gadgetType": 2,
+    "programNumber": 0,
+    "gainValue": 0.7652755906,
+    "instrumentTrackOnOff": true,
+    "programName": "ドラムキット１",
+    "auto_recognition": {
+      "aliases": ["drum kit 1"],
+      "gm_program_changes": [],
+      "gm_percussion_program_changes": [],
+      "provenance": {
+        "name_aliases": "Drum Kit 1 is the English name for this sample-observed preset in the existing README; programName is ドラムキット１.",
+        "gm_program_changes": "No melodic GM Program Change mapping is declared for this KTK percussion preset.",
+        "gm_percussion_program_changes": "Channel 10 is treated as GM percussion, but no verified GM percussion-kit-to-KTK equivalence is established by the available KTK samples."
+      }
+    }
+  },
+  "percussion-kit-2": {
+    "gadgetType": 2,
+    "programNumber": 4,
+    "gainValue": 0.7952755905511811,
+    "instrumentTrackOnOff": true,
+    "programName": "パーカッションキット２",
+    "auto_recognition": {
+      "aliases": ["percussion kit 2"],
+      "gm_program_changes": [],
+      "gm_percussion_program_changes": [],
+      "provenance": {
+        "name_aliases": "Percussion Kit 2 is the English name for this sample-observed preset in the existing README; programName is パーカッションキット２.",
+        "gm_program_changes": "No melodic GM Program Change mapping is declared for this KTK percussion preset.",
+        "gm_percussion_program_changes": "Channel 10 is treated as GM percussion, but no verified GM percussion-kit-to-KTK equivalence is established by the available KTK samples."
+      }
+    }
+  }
+}

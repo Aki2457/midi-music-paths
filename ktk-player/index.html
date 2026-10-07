@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5ef">
+  <meta name="description" content="A lightweight, experimental KTK file player that runs entirely in your browser.">
+  <title>KTK Player — a small browser player</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f5ef;
+      --surface: #fff;
+      --ink: #17211d;
+      --muted: #6c7771;
+      --line: #dfe4dd;
+      --green: #c5f277;
+      --green-dark: #35522e;
+      --coral: #f08e70;
+      --blue: #7c9eeb;
+      --purple: #a789d5;
+      --shadow: 0 18px 50px rgba(25, 39, 31, .07);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); min-width: 320px; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .shell { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(36, 54, 44, .1); }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 750; letter-spacing: .08em; font-size: 12px; }
+    .brand-mark { display: flex; align-items: end; justify-content: center; gap: 2px; width: 30px; height: 30px; padding: 7px 6px; border-radius: 9px; background: var(--ink); }
+    .brand-mark i { width: 3px; display: block; border-radius: 4px; background: var(--green); }
+    .brand-mark i:nth-child(1) { height: 8px; } .brand-mark i:nth-child(2) { height: 14px; } .brand-mark i:nth-child(3) { height: 10px; } .brand-mark i:nth-child(4) { height: 6px; }
+    .local-pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #d9e0d7; border-radius: 999px; color: #4c6551; background: rgba(255,255,255,.56); padding: 8px 12px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .local-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #7cbd63; box-shadow: 0 0 0 3px rgba(124,189,99,.14); }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(250px, .8fr); gap: 60px; align-items: center; padding: 72px 0 52px; }
+    .eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 0 19px; color: #557456; text-transform: uppercase; font-weight: 750; letter-spacing: .13em; font-size: 11px; }
+    .eyebrow::before { content: ""; width: 23px; height: 1px; background: #81a274; }
+    h1 { max-width: 660px; margin: 0; font-size: clamp(42px, 6vw, 68px); line-height: .99; letter-spacing: -.065em; font-weight: 720; }
+    .hero-copy { max-width: 500px; margin: 23px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+    .hero-copy strong { color: #34443b; font-weight: 650; }
+    .hero-art { position: relative; min-height: 238px; padding: 23px; border-radius: 24px; overflow: hidden; background: #1c2923; box-shadow: var(--shadow); }
+    .hero-art::before { content: ""; position: absolute; inset: auto -36px -102px auto; width: 265px; height: 265px; border: 1px solid rgba(197,242,119,.2); border-radius: 50%; box-shadow: 0 0 0 22px rgba(197,242,119,.035), 0 0 0 48px rgba(197,242,119,.03); }
+    .art-label { position: relative; z-index: 1; color: #bbc9bf; font-size: 10px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+    .art-title { position: relative; z-index: 1; max-width: 180px; margin-top: 13px; color: #f4f8f2; font-size: 21px; line-height: 1.18; letter-spacing: -.04em; font-weight: 640; }
+    .art-note { position: absolute; bottom: 21px; left: 23px; z-index: 1; color: #b3c3b7; font-size: 11px; }
+    .equalizer { position: absolute; right: 34px; top: 50%; display: flex; align-items: center; gap: 5px; height: 80px; transform: translateY(-50%); }
+    .equalizer i { display: block; width: 5px; height: var(--h); border-radius: 9px; background: var(--green); opacity: .92; }
+    .equalizer i:nth-child(3n) { background: #95d8ad; } .equalizer i:nth-child(4n) { background: #f5aa83; }
+    .drop-card { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 24px; padding: 26px 28px; border: 1px solid #d8dfd7; border-radius: 19px; background: rgba(255,255,255,.74); box-shadow: 0 8px 28px rgba(29,45,35,.035); transition: border-color .2s, background .2s, transform .2s; }
+    .drop-card.dragging { border-color: #7ca763; background: #f5ffe9; transform: translateY(-2px); }
+    .drop-intro { display: flex; align-items: center; gap: 17px; min-width: 0; }
+    .file-icon { flex: 0 0 48px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #edf3e9; color: #4d6e45; }
+    .drop-title { margin: 0; font-size: 16px; font-weight: 700; letter-spacing: -.025em; }
+    .drop-subtitle { margin: 5px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .primary-btn, .secondary-btn, .icon-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; cursor: pointer; transition: transform .15s, background .15s, opacity .15s; }
+    .primary-btn { min-height: 45px; padding: 0 17px; border-radius: 12px; background: var(--ink); color: white; font-size: 13px; font-weight: 680; white-space: nowrap; }
+    .primary-btn:hover:not(:disabled) { background: #2a3e32; transform: translateY(-1px); }
+    button:disabled { cursor: not-allowed; opacity: .42; }
+    .primary-btn:focus-visible, .secondary-btn:focus-visible, .icon-btn:focus-visible, input:focus-visible { outline: 3px solid #8ec467; outline-offset: 3px; }
+    #fileInput { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .error-box { display: none; margin-top: 14px; padding: 13px 15px; border: 1px solid #f0c7bb; border-radius: 12px; background: #fff7f4; color: #8c3b2a; font-size: 13px; line-height: 1.5; }
+    .error-box.visible { display: block; }
+    .feature-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 22px 0 66px; }
+    .feature { display: flex; gap: 11px; align-items: flex-start; padding: 15px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .feature b { display: block; margin-bottom: 3px; color: #35453b; font-size: 12px; }
+    .feature-mark { display: grid; place-items: center; flex: 0 0 24px; width: 24px; height: 24px; border-radius: 8px; background: #e5eddc; color: #55724d; font-size: 12px; font-weight: 800; }
+    .footer { display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid rgba(36,54,44,.1); padding: 21px 0 27px; color: #748078; font-size: 11px; line-height: 1.6; }
+    .footer-note { max-width: 720px; }
+    .footer-tag { color: #526756; font-weight: 700; white-space: nowrap; }
+
+    .player { display: none; margin: 34px 0 67px; border: 1px solid #dce2da; border-radius: 22px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+    .player.visible { display: block; }
+    .player-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 22px; padding: 25px 28px 20px; border-bottom: 1px solid #edf0eb; }
+    .file-kicker { color: #6b8066; text-transform: uppercase; font-size: 10px; font-weight: 750; letter-spacing: .14em; }
+    .song-title { margin: 7px 0 0; font-size: clamp(21px, 3vw, 28px); line-height: 1.15; letter-spacing: -.045em; overflow-wrap: anywhere; }
+    .song-filename { margin: 6px 0 0; color: #8b958e; font-size: 12px; }
+    .replace-btn { padding: 9px 12px; border: 1px solid #dce3db; border-radius: 10px; background: white; color: #48574e; font-size: 12px; font-weight: 650; white-space: nowrap; }
+    .replace-btn:hover:not(:disabled) { background: #f5f7f2; }
+    .project-meta { display: flex; flex-wrap: wrap; gap: 8px; padding: 15px 28px; border-bottom: 1px solid #edf0eb; }
+    .meta-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 8px; background: #f3f6f1; color: #46554b; font-size: 11px; font-weight: 650; }
+    .playback { padding: 19px 28px 21px; border-bottom: 1px solid #edf0eb; }
+    .play-row { display: flex; align-items: center; gap: 12px; }
+    .round-play { flex: 0 0 44px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--green); color: #233421; cursor: pointer; display: grid; place-items: center; }
+    .round-play:hover:not(:disabled) { background: #b4e962; transform: scale(1.03); }
+    .stop-btn { flex: 0 0 38px; width: 38px; height: 38px; border: 1px solid #dce3db; border-radius: 50%; background: white; color: #4b5a50; display: grid; place-items: center; cursor: pointer; }
+    .stop-btn:hover:not(:disabled) { background: #f3f6f1; }
+    .time-readout { min-width: 66px; color: #59675e; font-variant-numeric: tabular-nums; font-size: 11px; }
+    .progress-wrap { flex: 1; display: grid; gap: 6px; }
+    .progress-track { height: 6px; background: #ecf0ea; border-radius: 99px; overflow: hidden; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: #8cc56c; transition: width .08s linear; }
+    .play-label { color: #839087; font-size: 10px; }
+    .tempo-controls { display: flex; align-items: center; gap: 7px; margin-left: 7px; color: #68766d; font-size: 11px; }
+    .tempo-controls input { width: 58px; height: 34px; padding: 0 7px; border: 1px solid #dce3db; border-radius: 8px; background: white; color: #24352a; font-weight: 700; text-align: center; }
+    .track-section { padding: 19px 28px 24px; }
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 15px; margin-bottom: 12px; }
+    .section-title { margin: 0; font-size: 13px; font-weight: 750; letter-spacing: -.015em; }
+    .section-caption { color: #879189; font-size: 11px; }
+    .track-list { display: grid; gap: 8px; }
+    .track-row { display: grid; grid-template-columns: minmax(150px, 1.1fr) minmax(80px, 1fr) auto auto; align-items: center; gap: 15px; padding: 12px 13px; border: 1px solid #edf0eb; border-radius: 12px; background: #fdfefd; }
+    .track-name-cell { display: flex; align-items: center; min-width: 0; gap: 10px; }
+    .track-color { flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--track-color, #82b86a); }
+    .track-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; }
+    .track-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px; color: #929b94; font-size: 10px; }
+    .note-meter { display: flex; align-items: center; gap: 3px; height: 22px; overflow: hidden; opacity: .85; }
+    .note-meter i { flex: 1 0 3px; max-width: 5px; height: var(--nh, 8px); border-radius: 3px; background: var(--track-color, #82b86a); }
+    .track-count { color: #69776e; font-variant-numeric: tabular-nums; font-size: 11px; white-space: nowrap; }
+    .mute-btn { min-width: 57px; padding: 7px 9px; border: 1px solid #e0e6de; border-radius: 8px; background: white; color: #536159; font-size: 10px; font-weight: 650; cursor: pointer; }
+    .mute-btn[aria-pressed="true"] { color: #8e5b4d; background: #fff5f0; border-color: #f2d7ce; }
+    .compat-note { display: none; margin: 0 28px 22px; padding: 12px 14px; border-radius: 10px; background: #fff9e8; color: #79612b; font-size: 11px; line-height: 1.5; }
+    .compat-note.visible { display: block; }
+    .empty-tracks { padding: 16px; border-radius: 11px; background: #f7f8f5; color: #718076; font-size: 12px; }
+    .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 32px, 560px); }
+      .hero { grid-template-columns: 1fr; gap: 28px; padding: 49px 0 34px; }
+      .hero-art { min-height: 175px; }
+      .equalizer { right: 30px; }
+      .feature-row { grid-template-columns: 1fr; gap: 0; margin: 20px 0 43px; }
+      .feature { padding: 12px 2px; }
+      .drop-card { grid-template-columns: 1fr; gap: 17px; padding: 20px; }
+      .drop-card .primary-btn { width: 100%; }
+      .footer { flex-direction: column; gap: 9px; }
+      .player-head, .project-meta, .playback, .track-section { padding-left: 19px; padding-right: 19px; }
+      .compat-note { margin-left: 19px; margin-right: 19px; }
+      .play-row { flex-wrap: wrap; }
+      .progress-wrap { min-width: calc(100% - 115px); order: 2; }
+      .tempo-controls { margin-left: auto; }
+      .track-row { grid-template-columns: minmax(120px, 1fr) auto auto; gap: 10px; }
+      .note-meter { display: none; }
+      .track-count { font-size: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="shell topbar">
+    <div class="brand" aria-label="KTK Player home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>KTK&nbsp; PLAYER</span></div>
+    <div class="local-pill">Runs on this device</div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow">A lightweight project player</p>
+        <h1 id="hero-title">Your KTK files,<br>ready to play.</h1>
+        <p class="hero-copy">Open a project and hear a simple browser-made preview. <strong>No Katokatone, no WebGL, no upload.</strong> Your original file stays untouched on your device.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="art-label">Small by design</div>
+        <div class="art-title">A little sound,<br>without the studio.</div>
+        <div class="equalizer"><i style="--h:18px"></i><i style="--h:31px"></i><i style="--h:49px"></i><i style="--h:27px"></i><i style="--h:62px"></i><i style="--h:35px"></i><i style="--h:51px"></i><i style="--h:23px"></i><i style="--h:43px"></i><i style="--h:16px"></i><i style="--h:32px"></i><i style="--h:20px"></i></div>
+        <div class="art-note">Open · inspect · listen</div>
+      </div>
+    </section>
+
+    <section aria-label="Open a KTK project">
+      <div class="drop-card" id="dropCard">
+        <div class="drop-intro">
+          <div class="file-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 3.75h6.1L18 8.6v11.65H7a2 2 0 0 1-2-2V5.75a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 4v5h5M8.5 13h7M8.5 16h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div><h2 class="drop-title">Start with a .ktk file</h2><p class="drop-subtitle">Drop a project here, or choose one from your device.</p></div>
+        </div>
+        <button class="primary-btn" id="openButton" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14.5v4A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Choose a KTK file</button>
+        <input id="fileInput" type="file" accept=".ktk,application/octet-stream" aria-label="Choose a KTK file">
+      </div>
+      <div class="error-box" id="errorBox" role="alert"></div>
+    </section>
+
+    <section class="player" id="player" aria-label="KTK project player" aria-live="polite">
+      <div class="player-head">
+        <div><div class="file-kicker">Now in your browser</div><h2 class="song-title" id="songTitle">Untitled project</h2><p class="song-filename" id="songFilename"></p></div>
+        <button class="replace-btn" id="replaceButton" type="button">Open another file</button>
+      </div>
+      <div class="project-meta" id="projectMeta"></div>
+      <div class="playback">
+        <div class="play-row">
+          <button class="round-play" id="playButton" type="button" disabled aria-label="Play"><svg id="playIcon" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.8c0-.8.88-1.28 1.55-.84l9.1 6.2a1 1 0 0 1 0 1.68l-9.1 6.2A1 1 0 0 1 8 18.2V5.8Z"/></svg></button>
+          <button class="stop-btn" id="stopButton" type="button" disabled aria-label="Stop"><svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.2" y="3.2" width="9.6" height="9.6" rx="1.5"/></svg></button>
+          <div class="time-readout" id="timeReadout">0:00 / 0:00</div>
+          <div class="progress-wrap"><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div><div class="play-label" id="barReadout">Ready to play</div></div>
+          <label class="tempo-controls" for="tempoInput">BPM <input id="tempoInput" type="number" inputmode="numeric" min="30" max="300" step="1" value="100" aria-label="Playback tempo in beats per minute"></label>
+        </div>
+      </div>
+      <div class="track-section">
+        <div class="section-head"><h3 class="section-title">Tracks</h3><span class="section-caption" id="trackCaption"></span></div>
+        <div class="track-list" id="trackList"></div>
+      </div>
+      <p class="compat-note" id="compatNote"></p>
+    </section>
+
+    <section class="feature-row" aria-label="Player features">
+      <div class="feature"><span class="feature-mark">↗</span><div><b>Local by default</b>Files are read in this tab; they are not sent to a server.</div></div>
+      <div class="feature"><span class="feature-mark">♪</span><div><b>Lightweight sound</b>Uses browser audio oscillators, not 3D graphics or original samples.</div></div>
+      <div class="feature"><span class="feature-mark">~</span><div><b>Experimental support</b>Based on sample-observed KTK structure; timing and pitch are approximate.</div></div>
+    </section>
+  </main>
+
+  <footer class="shell footer">
+    <div class="footer-note">Compatibility is experimental. The 192 timing units per quarter note are inferred from sample files, not guaranteed by the format vendor. Preview sounds are approximate and do not alter your KTK or MIDI files.</div>
+    <div class="footer-tag">No uploads · No WebGL · Just browser audio</div>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+      const TICKS_PER_QUARTER = 192;
+      const trackColors = ['#79ad62', '#ef9878', '#7c9eeb', '#a789d5', '#4db7a5', '#d0a13d', '#cf79a6', '#788e99'];
+      const $ = (id) => document.getElementById(id);
+      const els = {
+        input: $('fileInput'), open: $('openButton'), replace: $('replaceButton'), drop: $('dropCard'), error: $('errorBox'),
+        player: $('player'), title: $('songTitle'), filename: $('songFilename'), meta: $('projectMeta'),
+        play: $('playButton'), stop: $('stopButton'), playIcon: $('playIcon'), tempo: $('tempoInput'),
+        time: $('timeReadout'), progress: $('progressFill'), bar: $('barReadout'), tracks: $('trackList'),
+        trackCaption: $('trackCaption'), compat: $('compatNote')
+      };
+      let project = null;
+      let audioContext = null;
+      let masterGain = null;
+      let audioNodes = [];
+      let timer = null;
+      let playing = false;
+      let playbackStartedAt = 0;
+      let playbackDuration = 0;
+
+      function setError(message) {
+        els.error.textContent = message;
+        els.error.classList.toggle('visible', Boolean(message));
+      }
+      function safeNumber(value, fallback = 0) {
+        const n = Number(value);
+        return Number.isFinite(n) ? n : fallback;
+      }
+      function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+      function formatTime(seconds) {
+        const total = Math.max(0, Math.floor(seconds));
+        return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+      }
+      function text(value, fallback = '') {
+        if (value === undefined || value === null) return fallback;
+        return String(value);
+      }
+      function formatMeter(value) {
+        if (Array.isArray(value) && value.length >= 2) return `${value[0]}/${value[1]}`;
+        if (typeof value === 'string' && value.trim()) return value.trim();
+        if (value && typeof value === 'object') {
+          const n = value.numerator ?? value.num;
+          const d = value.denominator ?? value.den;
+          if (n && d) return `${n}/${d}`;
+        }
+        return '4/4';
+      }
+      function meterParts(meter) {
+        const match = String(meter).match(/(\d+)\s*\/\s*(\d+)/);
+        return match ? [Math.max(1, Number(match[1])), Math.max(1, Number(match[2]))] : [4, 4];
+      }
+      function hasNonEmptyRuleChanges(value) {
+        if (!Array.isArray(value)) return Boolean(value && typeof value === 'object' && Object.keys(value).length);
+        return value.some((entry) => entry && typeof entry === 'object' && Object.keys(entry).length > 0);
+      }
+
+      async function extractZipMember(fileBuffer) {
+        const all = new Uint8Array(fileBuffer);
+        const hasPrefix = all.length >= 4 && all[0] === 0x6b && all[1] === 0x74 && all[2] === 0x6b && all[3] === 0x20;
+        const zip = hasPrefix ? all.subarray(4) : all;
+        const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+        if (zip.length < 22) throw new Error('This file is too short to contain a KTK ZIP archive.');
+        const minEocd = Math.max(0, zip.length - 22 - 65535);
+        let end = -1;
+        for (let i = zip.length - 22; i >= minEocd; i--) {
+          if (view.getUint32(i, true) === 0x06054b50) { end = i; break; }
+        }
+        if (end < 0) throw new Error('The ZIP directory was not found. Check that this is a valid .ktk project.');
+        const entryCount = view.getUint16(end + 10, true);
+        const directoryOffset = view.getUint32(end + 16, true);
+        let cursor = directoryOffset;
+        let selected = null;
+        const decoder = new TextDecoder('utf-8');
+        for (let i = 0; i < entryCount && cursor + 46 <= zip.length; i++) {
+          if (view.getUint32(cursor, true) !== 0x02014b50) throw new Error('The ZIP directory contains an unsupported entry.');
+          const flags = view.getUint16(cursor + 8, true);
+          const method = view.getUint16(cursor + 10, true);
+          const compressedSize = view.getUint32(cursor + 20, true);
+          const uncompressedSize = view.getUint32(cursor + 24, true);
+          const nameLength = view.getUint16(cursor + 28, true);
+          const extraLength = view.getUint16(cursor + 30, true);
+          const commentLength = view.getUint16(cursor + 32, true);
+          const localOffset = view.getUint32(cursor + 42, true);
+          const name = decoder.decode(zip.subarray(cursor + 46, cursor + 46 + nameLength));
+          if (name.replace(/\\/g, '/').split('/').pop().toLowerCase() === 'zipinside') {
+            selected = { flags, method, compressedSize, uncompressedSize, localOffset };
+            break;
+          }
+          cursor += 46 + nameLength + extraLength + commentLength;
+        }
+        if (!selected) throw new Error('The archive does not contain the expected “zipInside” JSON member.');
+        if (selected.flags & 1) throw new Error('This KTK archive is encrypted and cannot be opened here.');
+        if (selected.uncompressedSize > 32 * 1024 * 1024) throw new Error('The project data is unusually large, so the browser preview stopped for safety.');
+        const local = selected.localOffset;
+        if (local + 30 > zip.length || view.getUint32(local, true) !== 0x04034b50) throw new Error('The KTK archive has an invalid local file header.');
+        const localNameLength = view.getUint16(local + 26, true);
+        const localExtraLength = view.getUint16(local + 28, true);
+        const dataStart = local + 30 + localNameLength + localExtraLength;
+        const dataEnd = dataStart + selected.compressedSize;
+        if (dataEnd > zip.length) throw new Error('The KTK archive is truncated.');
+        const compressed = zip.subarray(dataStart, dataEnd);
+        let raw;
+        if (selected.method === 0) {
+          raw = compressed;
+        } else if (selected.method === 8) {
+          if (typeof DecompressionStream === 'undefined') throw new Error('This browser does not support ZIP deflate decompression. Try a recent version of Chrome, Edge, Firefox, or Safari.');
+          try {
+            const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+            raw = new Uint8Array(await new Response(stream).arrayBuffer());
+          } catch (error) {
+            throw new Error('The browser could not decompress the KTK data. Try a recent version of Chrome, Edge, Firefox, or Safari.');
+          }
+        } else {
+          throw new Error(`The archive uses ZIP compression method ${selected.method}, which this lightweight player does not support.`);
+        }
+        return new TextDecoder('utf-8', { fatal: true }).decode(raw);
+      }
+
+      function normalizeProject(data, filename) {
+        if (!data || typeof data !== 'object') throw new Error('The zipInside member is not a JSON project.');
+        const bpm = clamp(safeNumber(data.BPM ?? data.bpm ?? data.tempo, 100), 30, 300);
+        const meter = formatMeter(data.timeSignature ?? data.meter ?? data.time_signature);
+        const [numerator, denominator] = meterParts(meter);
+        const ticksPerBar = TICKS_PER_QUARTER * numerator * (4 / denominator);
+        const lanes = Array.isArray(data.seqData) ? data.seqData : null;
+        const instruments = Array.isArray(data.instrumentTracks) ? data.instrumentTracks : [];
+        const tracks = [];
+
+        if (lanes) {
+          lanes.forEach((bars, laneIndex) => {
+            if (!Array.isArray(bars)) return;
+            const instrument = instruments[laneIndex] || {};
+            const notes = [];
+            bars.forEach((bar, barIndex) => {
+              const events = Array.isArray(bar?.noteData) ? bar.noteData : Array.isArray(bar?.notes) ? bar.notes : [];
+              events.forEach((event) => {
+                const timing = safeNumber(event?.timing ?? event?.time ?? event?.start, NaN);
+                const length = safeNumber(event?.length ?? event?.duration, NaN);
+                const pitch = safeNumber(event?.pitch ?? event?.note, NaN);
+                if (!Number.isFinite(timing) || !Number.isFinite(length) || !Number.isFinite(pitch) || length <= 0) return;
+                notes.push({ startTicks: barIndex * ticksPerBar + timing, lengthTicks: length, pitch });
+              });
+            });
+            if (!notes.length) return;
+            tracks.push({
+              lane: laneIndex,
+              name: text(instrument.programName, `Track ${laneIndex + 1}`) || `Track ${laneIndex + 1}`,
+              gadgetType: safeNumber(instrument.gadgetType, 1),
+              programNumber: safeNumber(instrument.programNumber, 0),
+              gain: clamp(safeNumber(instrument.gainValue, 0.8), 0, 1),
+              initiallyMuted: instrument.instrumentTrackOnOff === false,
+              notes,
+              muted: instrument.instrumentTrackOnOff === false
+            });
+          });
+        } else if (Array.isArray(data.tracks)) {
+          data.tracks.forEach((track, laneIndex) => {
+            const events = track?.noteEvents ?? track?.notes ?? track?.events ?? [];
+            if (!Array.isArray(events)) return;
+            const notes = events.map((event) => ({
+              startTicks: safeNumber(event?.timing ?? event?.time ?? event?.start ?? event?.position, NaN),
+              lengthTicks: safeNumber(event?.length ?? event?.duration, NaN),
+              pitch: safeNumber(event?.pitch ?? event?.note, NaN)
+            })).filter((note) => Number.isFinite(note.startTicks) && Number.isFinite(note.lengthTicks) && note.lengthTicks > 0 && Number.isFinite(note.pitch));
+            if (notes.length) tracks.push({ lane: laneIndex, name: text(track.name ?? track.programName, `Track ${laneIndex + 1}`), gadgetType: safeNumber(track.gadgetType, 1), programNumber: safeNumber(track.programNumber, 0), gain: 0.8, initiallyMuted: false, muted: false, notes });
+          });
+        }
+
+        if (!tracks.length) throw new Error('The project opened, but no playable note events were found in its tracks.');
+        const barCount = lanes ? Math.max(1, ...lanes.map((lane) => Array.isArray(lane) ? lane.length : 0)) : 0;
+        const endTicks = Math.max(0, ...tracks.flatMap((track) => track.notes.map((note) => note.startTicks + note.lengthTicks)));
+        return {
+          name: text(data.songName ?? data.name, filename.replace(/\.ktk$/i, '')),
+          filename,
+          bpm,
+          meter,
+          numerator,
+          denominator,
+          ticksPerBar,
+          barCount: Math.max(barCount, Math.ceil(endTicks / ticksPerBar), 1),
+          tracks,
+          hasRuleChanges: hasNonEmptyRuleChanges(data.ruleTrackData)
+        };
+      }
+
+      function createChip(label, value) {
+        const chip = document.createElement('span');
+        chip.className = 'meta-chip';
+        chip.textContent = `${label} ${value}`;
+        return chip;
+      }
+      function renderTracks() {
+        els.tracks.replaceChildren();
+        if (!project.tracks.length) {
+          const empty = document.createElement('div'); empty.className = 'empty-tracks'; empty.textContent = 'No note tracks were found.'; els.tracks.append(empty); return;
+        }
+        project.tracks.forEach((track, index) => {
+          const row = document.createElement('div'); row.className = 'track-row';
+          row.style.setProperty('--track-color', trackColors[index % trackColors.length]);
+          const nameCell = document.createElement('div'); nameCell.className = 'track-name-cell';
+          const dot = document.createElement('span'); dot.className = 'track-color'; dot.setAttribute('aria-hidden', 'true');
+          const names = document.createElement('div'); names.style.minWidth = '0';
+          const name = document.createElement('div'); name.className = 'track-name'; name.textContent = track.name; name.title = track.name;
+          const sub = document.createElement('div'); sub.className = 'track-sub'; sub.textContent = track.gadgetType === 2 ? 'Percussion · browser tone' : 'Instrument · browser tone';
+          names.append(name, sub); nameCell.append(dot, names);
+          const meter = document.createElement('div'); meter.className = 'note-meter'; meter.setAttribute('aria-hidden', 'true');
+          const slots = Math.min(32, Math.max(12, track.notes.length));
+          for (let i = 0; i < slots; i++) {
+            const bar = document.createElement('i');
+            const note = track.notes[Math.floor(i * track.notes.length / slots)];
+            bar.style.setProperty('--nh', `${5 + ((Math.round(note.pitch) * 7 + i * 13) % 15)}px`);
+            meter.append(bar);
+          }
+          const count = document.createElement('span'); count.className = 'track-count'; count.textContent = `${track.notes.length} ${track.notes.length === 1 ? 'note' : 'notes'}`;
+          const mute = document.createElement('button'); mute.className = 'mute-btn'; mute.type = 'button'; mute.setAttribute('aria-pressed', String(track.muted)); mute.textContent = track.muted ? 'Muted' : 'Mute';
+          mute.setAttribute('aria-label', `${track.muted ? 'Unmute' : 'Mute'} ${track.name}`);
+          mute.addEventListener('click', () => { track.muted = !track.muted; mute.setAttribute('aria-pressed', String(track.muted)); mute.textContent = track.muted ? 'Muted' : 'Mute'; mute.setAttribute('aria-label', `${track.muted ? 'Unmute' : 'Mute'} ${track.name}`); });
+          row.append(nameCell, meter, count, mute); els.tracks.append(row);
+        });
+      }
+      function durationFor(bpm) {
+        return Math.max(0.25, ...project.tracks.flatMap((track) => track.notes.map((note) => ((note.startTicks + note.lengthTicks) / TICKS_PER_QUARTER) * 60 / bpm)));
+      }
+      function renderProject() {
+        els.title.textContent = project.name;
+        els.filename.textContent = project.filename;
+        els.meta.replaceChildren(createChip('TEMPO', `${project.bpm} BPM`), createChip('METER', project.meter), createChip('BARS', project.barCount), createChip('TRACKS', project.tracks.length));
+        els.tempo.value = String(project.bpm);
+        playbackDuration = durationFor(project.bpm);
+        els.trackCaption.textContent = `${project.barCount} bars · ${project.tracks.reduce((n, t) => n + t.notes.length, 0).toLocaleString()} notes`;
+        els.play.disabled = false;
+        els.stop.disabled = true;
+        els.player.classList.add('visible');
+        renderTracks();
+        if (project.hasRuleChanges) {
+          els.compat.textContent = 'This preview reads the project-level tempo and meter. Sample-observed in-song rule changes are not applied by this player.';
+          els.compat.classList.add('visible');
+        } else {
+          els.compat.classList.remove('visible');
+        }
+        updateProgress(0);
+        els.player.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      async function loadFile(file) {
+        setError('');
+        if (!file) return;
+        if (!/\.ktk$/i.test(file.name)) { setError('Please choose a .ktk project file.'); return; }
+        if (file.size > 64 * 1024 * 1024) { setError('This file is larger than the 64 MB browser preview limit.'); return; }
+        clearAudio();
+        els.open.disabled = true; els.replace.disabled = true; els.open.textContent = 'Opening…';
+        try {
+          const jsonText = await extractZipMember(await file.arrayBuffer());
+          let data;
+          try { data = JSON.parse(jsonText); } catch (error) { throw new Error('The zipInside member was not valid JSON.'); }
+          project = normalizeProject(data, file.name);
+          renderProject();
+        } catch (error) {
+          setError(error instanceof Error ? error.message : 'Could not open this KTK file.');
+        } finally {
+          els.open.disabled = false; els.replace.disabled = false; els.open.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14.5v4A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Choose a KTK file';
+          els.input.value = '';
+        }
+      }
+      function ensureAudio() {
+        const Audio = window.AudioContext || window.webkitAudioContext;
+        if (!Audio) throw new Error('Browser audio is not available in this browser.');
+        if (!audioContext) {
+          audioContext = new Audio();
+          masterGain = audioContext.createGain();
+          masterGain.gain.value = 0.55;
+          masterGain.connect(audioContext.destination);
+        }
+        return audioContext;
+      }
+      function pitchFrequency(pitch) { return 440 * Math.pow(2, (pitch - 69) / 12); }
+      function scheduleNote(track, note, startAt, bpm, ctx) {
+        const start = startAt + Math.max(0, note.startTicks / TICKS_PER_QUARTER) * 60 / bpm;
+        const dur = clamp(note.lengthTicks / TICKS_PER_QUARTER * 60 / bpm, 0.055, 12);
+        const stopAt = start + dur;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const kind = track.gadgetType === 2 ? 'sine' : ['triangle', 'sine', 'triangle', 'square'][Math.abs(track.programNumber) % 4];
+        osc.type = kind;
+        const freq = track.gadgetType === 2 ? clamp(75 + (Math.abs(note.pitch) % 32) * 7, 65, 320) : clamp(pitchFrequency(note.pitch), 30, 4000);
+        osc.frequency.setValueAtTime(freq, start);
+        const volume = clamp(0.12 * track.gain, 0.012, 0.12);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.linearRampToValueAtTime(volume, start + Math.min(0.018, dur * 0.3));
+        gain.gain.setValueAtTime(volume, Math.max(start + 0.02, stopAt - Math.min(0.05, dur * 0.25)));
+        gain.gain.exponentialRampToValueAtTime(0.0001, stopAt + 0.045);
+        osc.connect(gain); gain.connect(masterGain);
+        osc.start(start); osc.stop(stopAt + 0.06);
+        osc.onended = () => { try { osc.disconnect(); gain.disconnect(); } catch (_) {} };
+        audioNodes.push(osc);
+      }
+      function updateProgress(elapsed) {
+        const progress = playbackDuration > 0 ? clamp(elapsed / playbackDuration, 0, 1) : 0;
+        els.progress.style.width = `${progress * 100}%`;
+        els.time.textContent = `${formatTime(elapsed)} / ${formatTime(playbackDuration)}`;
+        const bpm = clamp(safeNumber(els.tempo.value, project?.bpm || 100), 30, 300);
+        const beatsPerBar = project ? project.numerator * (4 / project.denominator) : 4;
+        const bar = Math.min(project?.barCount || 1, Math.floor((elapsed * bpm / 60) / beatsPerBar) + 1);
+        els.bar.textContent = playing ? `Bar ${bar} of ${project.barCount}` : (progress >= 1 ? 'Playback complete' : 'Ready to play');
+      }
+      function clearAudio() {
+        if (timer) { clearInterval(timer); timer = null; }
+        const ctx = audioContext;
+        if (ctx && masterGain) {
+          try {
+            masterGain.gain.cancelScheduledValues(ctx.currentTime);
+            masterGain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.012);
+          } catch (_) {}
+          audioNodes.forEach((node) => { try { node.stop(ctx.currentTime + 0.04); } catch (_) {} });
+          setTimeout(() => { if (audioContext === ctx && masterGain) { try { masterGain.gain.cancelScheduledValues(ctx.currentTime); masterGain.gain.setValueAtTime(0.55, ctx.currentTime); } catch (_) {} } }, 90);
+        }
+        audioNodes = [];
+        playing = false;
+        els.play.disabled = !project;
+        els.stop.disabled = true;
+        els.play.setAttribute('aria-label', 'Play');
+        els.playIcon.innerHTML = '<path d="M8 5.8c0-.8.88-1.28 1.55-.84l9.1 6.2a1 1 0 0 1 0 1.68l-9.1 6.2A1 1 0 0 1 8 18.2V5.8Z"/>';
+      }
+      async function startPlayback() {
+        if (!project) return;
+        clearAudio();
+        try {
+          const ctx = ensureAudio();
+          await ctx.resume();
+          const bpm = clamp(safeNumber(els.tempo.value, project.bpm), 30, 300);
+          els.tempo.value = String(bpm);
+          playbackDuration = durationFor(bpm);
+          playbackStartedAt = ctx.currentTime + 0.08;
+          masterGain.gain.cancelScheduledValues(ctx.currentTime);
+          masterGain.gain.setValueAtTime(0.55, ctx.currentTime);
+          project.tracks.filter((track) => !track.muted).forEach((track) => track.notes.forEach((note) => scheduleNote(track, note, playbackStartedAt, bpm, ctx)));
+          playing = true;
+          els.play.disabled = true;
+          els.stop.disabled = false;
+          els.play.setAttribute('aria-label', 'Playing');
+          els.playIcon.innerHTML = '<path d="M7 5.5A1.5 1.5 0 0 1 8.5 4h1A1.5 1.5 0 0 1 11 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 7 18.5v-13Zm6 0A1.5 1.5 0 0 1 14.5 4h1A1.5 1.5 0 0 1 17 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 13 18.5v-13Z"/>';
+          updateProgress(0);
+          timer = setInterval(() => {
+            if (!audioContext || !playing) return;
+            const elapsed = Math.max(0, audioContext.currentTime - playbackStartedAt);
+            updateProgress(elapsed);
+            if (elapsed >= playbackDuration) { clearAudio(); updateProgress(playbackDuration); }
+          }, 100);
+        } catch (error) {
+          clearAudio(); setError(error instanceof Error ? error.message : 'Could not start browser audio.');
+        }
+      }
+
+      els.open.addEventListener('click', () => els.input.click());
+      els.replace.addEventListener('click', () => els.input.click());
+      els.input.addEventListener('change', (event) => loadFile(event.target.files?.[0]));
+      els.play.addEventListener('click', startPlayback);
+      els.stop.addEventListener('click', () => { clearAudio(); updateProgress(0); });
+      els.tempo.addEventListener('input', () => {
+        if (project && !playing) { playbackDuration = durationFor(clamp(safeNumber(els.tempo.value, project.bpm), 30, 300)); updateProgress(0); }
+      });
+      ['dragenter', 'dragover'].forEach((type) => els.drop.addEventListener(type, (event) => { event.preventDefault(); els.drop.classList.add('dragging'); }));
+      ['dragleave', 'drop'].forEach((type) => els.drop.addEventListener(type, (event) => { event.preventDefault(); els.drop.classList.remove('dragging'); }));
+      els.drop.addEventListener('drop', (event) => loadFile(event.dataTransfer?.files?.[0]));
+      window.addEventListener('dragover', (event) => event.preventDefault());
+      window.addEventListener('drop', (event) => event.preventDefault());
+    })();
+  </script>
+</body>
+</html>

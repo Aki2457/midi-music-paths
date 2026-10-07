@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <meta name="description" content="Convert Standard MIDI files into Katokatone KTK projects locally in your browser.">
+  <title>MIDI to Katokatone · KTK Studio</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="KTK Studio home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 36 36" fill="none"><rect x="2" y="2" width="32" height="32" rx="10" fill="currentColor"/><path d="M10 10v16m0-8 9-8m-8 9 9 7M24 13v13m0-13h5m-5 6h5" stroke="#F7F6F0" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="brand-name">KTK <span>STUDIO</span></span>
+      </a>
+      <span class="local-badge"><span></span> Runs on your device</span>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">A small bridge between formats</p>
+        <h1 id="page-title">MIDI <span>to</span> Katokatone</h1>
+        <p class="intro-copy">Turn a Standard MIDI song into an editable <code>.ktk</code> project. Choose a file and instrument; your MIDI stays in this browser.</p>
+      </section>
+
+      <section class="workspace-card" aria-label="MIDI conversion">
+        <div class="steps" aria-hidden="true">
+          <span class="step active"><b>01</b> Choose file</span><i></i><span class="step"><b>02</b> Set instrument</span><i></i><span class="step"><b>03</b> Download</span>
+        </div>
+
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose a MIDI file or drop it here" aria-describedby="file-help">
+          <input id="midi-file" type="file" aria-label="Choose MIDI file" accept=".mid,audio/midi,audio/x-midi" hidden>
+          <span class="upload-art" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none"><path d="M15 34.5h-2.25a8.25 8.25 0 0 1-.8-16.46A12.5 12.5 0 0 1 36.35 21a7 7 0 0 1-.1 14h-3.5M24 38V23m0 0-5.5 5.5M24 23l5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <div class="drop-copy">
+            <strong id="file-title">Drop a MIDI file here</strong>
+            <span id="file-help">or <span class="browse-link">browse files</span> · .mid</span>
+          </div>
+          <span class="file-chip" id="file-chip" hidden><span class="file-dot"></span><span id="file-name"></span><button id="remove-file" type="button" aria-label="Remove selected file">×</button></span>
+        </div>
+
+        <div class="form-row">
+          <label class="field-label" for="instrument">Output instrument</label>
+          <div class="select-wrap">
+            <select id="instrument" name="instrument">
+              <option value="pianica" selected>Pianica · recommended</option>
+              <option value="piano">Piano</option>
+              <option value="clarinet">Clarinet</option>
+              <option value="drum-kit-1">Drum Kit 1</option>
+              <option value="percussion-kit-2">Percussion Kit 2</option>
+              <option value="auto">Auto-recognize (conservative)</option>
+            </select>
+            <svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="field-hint" id="instrument-hint">Pianica is applied to each note-bearing MIDI track. Program changes are reported, not copied.</p>
+        </div>
+
+        <div class="auto-options" id="auto-options" hidden>
+          <label class="field-label" for="fallback">If recognition is uncertain</label>
+          <div class="select-wrap">
+            <select id="fallback" name="fallback">
+              <option value="pianica" selected>Use Pianica fallback</option>
+              <option value="piano">Use Piano fallback</option>
+              <option value="clarinet">Use Clarinet fallback</option>
+              <option value="error">Stop instead of guessing</option>
+            </select>
+            <svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="field-hint">Auto mode only matches exact normalized names or the configured GM program values Piano 0 and Clarinet 71. It is not sound-based.</p>
+        </div>
+
+        <details class="advanced">
+          <summary><span>Conversion options</span><span class="summary-meta">Strict by default</span></summary>
+          <div class="options-body">
+            <label class="check-row">
+              <input id="repair" type="checkbox">
+              <span class="check-ui" aria-hidden="true"></span>
+              <span><strong>Try best-effort note repair</strong><small>Off by default. Ignores unmatched note-offs and closes still-open notes at that track’s end-of-track tick. This changes malformed MIDI note structure; every repair is listed in the JSON report.</small></span>
+            </label>
+            <label class="check-row">
+              <input id="exact" type="checkbox">
+              <span class="check-ui" aria-hidden="true"></span>
+              <span><strong>Reject off-grid timing</strong><small>Off by default. Uses nearest 192-unit KTK grid and reports any rounding; enable this to fail if a note start or length cannot be represented exactly.</small></span>
+            </label>
+            <div class="override-block">
+              <label class="check-row">
+                <input id="tempo-enabled" type="checkbox">
+                <span class="check-ui" aria-hidden="true"></span>
+                <span><strong>Override output tempo</strong><small>Opt-in. Changes only the KTK BPM; note ticks and lengths are not rescaled, so playback may be faster or slower.</small></span>
+              </label>
+              <label class="compact-field" for="tempo-override">Output BPM <input id="tempo-override" type="number" min="30" max="210" step="1" value="120" disabled></label>
+            </div>
+            <div class="advanced-field">
+              <label class="compact-field" for="key-number">KTK key number <span>(only if MIDI includes a key signature)</span><input id="key-number" type="number" step="1" placeholder="Required when key signature is present"></label>
+              <p class="field-hint">KTK’s numeric key mapping is unknown. This is never inferred from a MIDI key signature; set an explicit target value or conversion stops.</p>
+            </div>
+            <div class="advanced-field">
+              <label class="compact-field" for="pitch-offset">Pitch offset <span>(semitones; default 0)</span><input id="pitch-offset" type="number" step="1" value="0"></label>
+              <p class="field-hint">Serialized pitch is provisionally MIDI note number + this value. Accepted KTK pitch range and octave mapping are not fully verified.</p>
+            </div>
+          </div>
+        </details>
+
+        <div class="action-row">
+          <p class="privacy-note"><span aria-hidden="true">●</span> MIDI data is processed locally. No upload or account required.</p>
+          <button class="convert-button" id="convert" type="button" disabled><span>Convert to .ktk</span><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+
+        <div class="status" id="status" role="status" aria-live="polite" hidden></div>
+        <section class="result" id="result" aria-labelledby="result-title" hidden>
+          <div class="result-heading"><div><p class="eyebrow">Conversion complete</p><h2 id="result-title">Your project is ready</h2></div><span class="success-mark" aria-hidden="true">✓</span></div>
+          <div class="stats" id="stats"></div>
+          <div class="downloads">
+            <button class="download-primary" id="download-ktk" type="button"><span class="download-icon" aria-hidden="true">↓</span> Download .ktk project</button>
+            <button class="download-secondary" id="download-report" type="button">Download JSON report</button>
+          </div>
+          <p class="result-caveat" id="result-caveat"></p>
+        </section>
+      </section>
+
+      <section class="limits" aria-labelledby="limits-title">
+        <div class="limits-mark" aria-hidden="true">i</div>
+        <div><h2 id="limits-title">A note about compatibility</h2>
+          <p>KTK’s internal ZIP/JSON layout and 192 timing units per quarter are inferred from sample projects, not a full published specification. MIDI-to-KTK pitch mapping is provisional; app open/save round-trip compatibility has not been verified.</p>
+          <p>KTK note records do not store MIDI velocity, channel, track name, controllers, pitch bend, or timed program changes. Mid-song tempo, meter, and key changes are rejected rather than flattened. Supported files are Standard MIDI format 0/1 using PPQN timing, with up to eight note-bearing tracks.</p>
+        </div>
+      </section>
+    </main>
+    <footer><span>KTK Studio · MIDI → KTK</span><span>All conversion stays in this browser</span></footer>
+  </div>
+</body>
+</html>
