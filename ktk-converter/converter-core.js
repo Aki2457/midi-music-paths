@@ -8,6 +8,8 @@ const DEFAULT_KTK_TPQ = 192;
 const decoder = new TextDecoder('utf-8', { fatal: false });
 const encoder = new TextEncoder();
 
+export function isMidiFilename(name) { return /\.midi?$/i.test(String(name ?? '')); }
+
 function readVLQ(data, cursor) {
   let value = 0;
   for (let i = 0; i < 4; i++) {
@@ -393,23 +395,52 @@ export function convertMidiToKtk(midi, template, presets, options = {}) {
 
   const activeTracks = midi.tracks.filter(track => track.notes.length > 0);
   if (!activeTracks.length) throw new ConversionError('MIDI contains no completed note events');
-  if (activeTracks.length > MAX_LANES) throw new ConversionError(`${activeTracks.length} MIDI note-bearing tracks exceed the eight-lane KTK capacity`);
-  const laneForTrack = new Map(activeTracks.map((track, lane) => [track.index, lane]));
+  const laneForTrack = new Map();
   const lanePresetNames = new Map();
   const instrumentRecognition = [];
+  const presetForTrack = new Map();
   let inactivePresetName, preset;
   if (instrument === 'auto') {
-    activeTracks.forEach((track, lane) => {
-      const [selected, recognition] = resolveAutoInstrument(track, midi.tracks, presets, lane, instrumentFallback);
-      lanePresetNames.set(lane, selected); instrumentRecognition.push(recognition);
+    activeTracks.forEach((track, sourceIndex) => {
+      const [selected, recognition] = resolveAutoInstrument(track, midi.tracks, presets, sourceIndex, instrumentFallback);
+      presetForTrack.set(track.index, selected);
+      instrumentRecognition.push(recognition);
     });
-    inactivePresetName = instrumentFallback in presets ? instrumentFallback : lanePresetNames.get(0);
+    inactivePresetName = instrumentFallback in presets ? instrumentFallback : presetForTrack.get(activeTracks[0].index);
     preset = null;
   } else {
-    activeTracks.forEach((_, lane) => lanePresetNames.set(lane, instrument));
+    activeTracks.forEach(track => presetForTrack.set(track.index, instrument));
     inactivePresetName = instrument;
     preset = ktkPresetPayload(presets[instrument]);
   }
+  if (activeTracks.length <= MAX_LANES) {
+    activeTracks.forEach((track, lane) => laneForTrack.set(track.index, lane));
+  } else if (instrument === 'auto') {
+    const tracksByPreset = new Map();
+    for (const track of activeTracks) {
+      const presetName = presetForTrack.get(track.index);
+      if (!tracksByPreset.has(presetName)) tracksByPreset.set(presetName, []);
+      tracksByPreset.get(presetName).push(track);
+    }
+    if (tracksByPreset.size > MAX_LANES)
+      throw new ConversionError(`${activeTracks.length} note-bearing tracks resolve to ${tracksByPreset.size} different instruments, exceeding the eight-lane KTK capacity; choose one explicit instrument to combine the tracks, or resolve the MIDI to eight or fewer instrument groups`);
+    let lane = 0;
+    for (const tracks of tracksByPreset.values()) {
+      for (const track of tracks) laneForTrack.set(track.index, lane);
+      lanePresetNames.set(lane, presetForTrack.get(tracks[0].index));
+      lane++;
+    }
+  } else {
+    activeTracks.forEach((track, sourceIndex) => laneForTrack.set(track.index, sourceIndex % MAX_LANES));
+  }
+  for (const track of activeTracks) {
+    const lane = laneForTrack.get(track.index);
+    const selected = presetForTrack.get(track.index);
+    if (!lanePresetNames.has(lane)) lanePresetNames.set(lane, selected);
+  }
+  for (const recognition of instrumentRecognition)
+    recognition.ktk_lane = laneForTrack.get(recognition.source_track);
+  const activeLaneCount = new Set(laneForTrack.values()).size;
 
   const tempoUs = constantGlobal(midi.tempos, 500000, 'tempo');
   const meter = constantGlobal(midi.meters, [4, 4], 'time-signature');
@@ -418,9 +449,7 @@ export function convertMidiToKtk(midi, template, presets, options = {}) {
     throw new ConversionError(`meter ${numerator}/${denominator} is outside the documented KTK meter choices`);
   const bpmExact = 60000000 / tempoUs;
   const sourceBpmRounded = Math.floor(bpmExact + 0.5);
-  const bpm = tempoOverride === null ? sourceBpmRounded : tempoOverride;
-  if (tempoOverride === null && (bpm < 30 || bpm > 210))
-    throw new ConversionError(`tempo ${bpmExact.toFixed(5)} BPM is outside the documented KTK range 30–210`);
+  const bpm = tempoOverride === null ? Math.max(30, Math.min(210, sourceBpmRounded)) : tempoOverride;
   let playbackEffect = 'not overridden', playbackWarning = null;
   if (tempoOverride !== null) {
     if (bpm < bpmExact) {
@@ -430,6 +459,9 @@ export function convertMidiToKtk(midi, template, presets, options = {}) {
     } else {
       playbackEffect = 'unchanged'; playbackWarning = `Tempo override is ${bpm} BPM, matching the source tempo; playback speed is unchanged.`;
     }
+  } else if (bpm !== sourceBpmRounded) {
+    playbackEffect = bpm < bpmExact ? 'slower' : 'faster';
+    playbackWarning = `Source tempo ${bpmExact.toFixed(5)} BPM is outside the documented KTK range 30–210; output was automatically set to ${bpm} BPM. Note ticks were unchanged, so playback will be ${playbackEffect}.`;
   }
   if ((ktkTpq * numerator * 4) % denominator !== 0)
     throw new ConversionError('selected meter does not fit evenly on the configured KTK quarter-note grid');
@@ -482,7 +514,6 @@ export function convertMidiToKtk(midi, template, presets, options = {}) {
   project.loopRange = [1, 1];
   project.activeTrackNumber = 0;
   project.instrumentTracks = [];
-  const activeLaneCount = activeTracks.length;
   for (let lane = 0; lane < MAX_LANES; lane++) {
     const presetName = lanePresetNames.get(lane) || inactivePresetName;
     const lanePreset = ktkPresetPayload(presets[presetName]);
@@ -511,6 +542,9 @@ export function convertMidiToKtk(midi, template, presets, options = {}) {
   const programs = midi.tracks.flatMap(track => track.program_changes.map(change => ({ track: track.index, track_name: track.name, ...change })));
   const warnings = [
     ...midi.repair_actions.map(action => action.warning),
+    ...(activeTracks.length > activeLaneCount
+      ? [`${activeTracks.length} MIDI note-bearing tracks were combined into ${activeLaneCount} KTK lanes to fit the eight-lane format; no note events were discarded, but merged source-track identity is not retained.`]
+      : []),
     ...instrumentRecognition.filter(item => item.confidence === 'none').map(item => `KTK lane ${item.ktk_lane + 1} used fallback preset '${item.chosen_ktk_preset}': ${item.reason}`),
     ...(playbackWarning ? [playbackWarning] : [])
   ];
@@ -533,13 +567,17 @@ export function convertMidiToKtk(midi, template, presets, options = {}) {
     } : {}),
     tempo: { source_microseconds_per_quarter: tempoUs, source_bpm_exact: bpmExact, source_bpm_rounded: sourceBpmRounded,
       output_bpm: bpm, ktk_bpm_integer: bpm, tempo_override_bpm: tempoOverride,
-      override_applied: tempoOverride !== null, playback_effect: playbackEffect, playback_warning: playbackWarning,
-      output_minus_source_bpm: bpm - bpmExact, rounding_error_bpm: tempoOverride !== null ? null : bpm - bpmExact,
+      override_applied: tempoOverride !== null, source_tempo_clamped: tempoOverride === null && bpm !== sourceBpmRounded,
+      playback_effect: playbackEffect, playback_warning: playbackWarning,
+      output_minus_source_bpm: bpm - bpmExact, rounding_error_bpm: tempoOverride !== null ? null : bpm - sourceBpmRounded,
       source_event_count: midi.tempos.length },
     meter: { numerator, denominator, source_event_count: midi.meters.length },
     key_signature_events: midi.key_signatures.map(([tick, signature]) => ({ tick, sf: signature[0], mode: signature[1] })),
     ktk_key_number: project.keyNumber, ktk_key_number_source: keyNumberSource, note_count: allNotes.length,
     lane_count_used: activeLaneCount, bar_count: barCount,
+    lane_merging: { source_track_count: activeTracks.length, lane_count: activeLaneCount,
+      merged: activeTracks.length > activeLaneCount,
+      strategy: instrument === 'auto' ? 'merge tracks sharing a selected preset when needed' : 'distribute overflow tracks across the eight lanes when needed' },
     off_grid_start_count: startErrors.length - exactStartCount,
     off_grid_length_count: lengthErrors.length - exactLengthCount,
     maximum_absolute_timing_error_midi_ticks: maximumError,
@@ -547,6 +585,7 @@ export function convertMidiToKtk(midi, template, presets, options = {}) {
     limitations: [
       'No KTK app round-trip has been performed; timing and pitch interoperability are not confirmed.',
       'KTK noteData does not store MIDI velocity, channel, or track name.',
+      ...(activeTracks.length > activeLaneCount ? ['When multiple MIDI tracks share one KTK lane, their original track identity cannot be recovered from the project.'] : []),
       instrument === 'auto'
         ? 'Automatic instrument recognition only uses exact configured names and stable, explicitly mapped GM Program Change values; unrecognized, unsupported percussion, or conflicting metadata uses the configured fallback.'
         : 'One selected KTK preset is applied to all note-bearing lanes; MIDI program changes are reported but not applied.',

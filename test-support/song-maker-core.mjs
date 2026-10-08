@@ -1,5 +1,6 @@
 const PPQ_OUT = 960;
 const MAX_BARS = 16;
+const MAX_CONVERSION_BARS = 10000;
 const MAX_NOTES = 20000;
 const LOWEST_ROOT = 36; // Song Maker's Low octave (C2)
 const HIGHEST_ROOT = 71; // Song Maker's High octave (B5)
@@ -214,6 +215,9 @@ function roundBpm(value, fallback) {
 /** Convert arbitrary MIDI note events to the grid and options Song Maker expects. */
 export function convertMidiToSongMaker(input, settings = {}) {
   const parsed = parseMidi(input);
+  const maxBars = settings.maxBars === undefined ? MAX_BARS : Number(settings.maxBars);
+  assert(Number.isInteger(maxBars) && maxBars >= 1 && maxBars <= MAX_CONVERSION_BARS,
+    `The Song Maker conversion must use between 1 and ${MAX_CONVERSION_BARS} bars.`);
   const subdivision = Math.max(1, Math.min(4, Math.round(Number(settings.subdivision) || 4)));
   const beats = Math.max(2, Math.min(7, Math.round(Number(settings.beats) || 4)));
   const requestedTempo = roundBpm(settings.tempo, parsed.sourceTempo);
@@ -250,7 +254,7 @@ export function convertMidiToSongMaker(input, settings = {}) {
 
   const rawEnd = Math.max(1, ...melodies.map(note => note.startStep + note.durationSteps), ...drums.map(note => note.startStep + note.durationSteps));
   const desiredBars = Math.max(1, Math.ceil(rawEnd / stepsPerBar));
-  const bars = Math.min(MAX_BARS, desiredBars);
+  const bars = Math.min(maxBars, desiredBars);
   const maxSteps = bars * stepsPerBar;
   let trimmedNotes = 0;
   let clippedNotes = 0;
@@ -286,7 +290,7 @@ export function convertMidiToSongMaker(input, settings = {}) {
   const warnings = [];
   if (transposedCount) warnings.push(`${transposedCount} melody note${transposedCount === 1 ? '' : 's'} shifted by octave(s) to fit Song Maker's three-octave grid; pitch classes are preserved.`);
   if (snappedCount) warnings.push(`${snappedCount} note${snappedCount === 1 ? '' : 's'} snapped to the selected ${subdivision}-part beat grid.`);
-  if (desiredBars > MAX_BARS) warnings.push(`Song Maker allows at most ${MAX_BARS} bars here; later notes were trimmed to the first ${MAX_BARS} bars.`);
+  if (desiredBars > maxBars) warnings.push(`This conversion allows at most ${maxBars} bars here; later notes were trimmed to the first ${maxBars} bars.`);
   if (trimmedNotes || clippedNotes) warnings.push(`${trimmedNotes} note${trimmedNotes === 1 ? '' : 's'} fell beyond the Song Maker length; ${clippedNotes} note${clippedNotes === 1 ? '' : 's'} were shortened at the end.`);
   if (parsed.tempoEvents > 1) warnings.push('This MIDI has tempo changes. Song Maker uses one tempo, so timing was converted using the tempo map and then fitted to the chosen BPM.');
   if (!songNotes.length && percussionNotes.length) warnings.push('This file only contains percussion notes; Song Maker will show them on its percussion rows.');
@@ -295,7 +299,7 @@ export function convertMidiToSongMaker(input, settings = {}) {
     options,
     notes: songNotes,
     drums: percussionNotes,
-    midi: createSongMakerMidi({ options, notes: songNotes, drums: percussionNotes, stepsPerBar }),
+    midi: settings.buildMidi === false ? null : createSongMakerMidi({ options, notes: songNotes, drums: percussionNotes, stepsPerBar }),
     summary: {
       sourceNotes: parsed.notes.length,
       melodyNotes: songNotes.length,
@@ -310,6 +314,51 @@ export function convertMidiToSongMaker(input, settings = {}) {
       clippedNotes,
       warnings,
     },
+  };
+}
+
+/** Convert a full song into sequential MIDI files that each respect Song Maker's 16-bar limit. */
+export function convertMidiToSongMakerParts(input, settings = {}) {
+  const converted = convertMidiToSongMaker(input, { ...settings, maxBars: MAX_CONVERSION_BARS, buildMidi: false });
+  const { beats, subdivision } = converted.options;
+  const stepsPerBar = beats * subdivision;
+  const partCount = Math.max(1, Math.ceil(converted.options.bars / MAX_BARS));
+  const parts = [];
+
+  for (let partIndex = 0; partIndex < partCount; partIndex += 1) {
+    const startBar = partIndex * MAX_BARS;
+    const bars = Math.min(MAX_BARS, converted.options.bars - startBar);
+    const startStep = startBar * stepsPerBar;
+    const endStep = startStep + bars * stepsPerBar;
+    const clip = events => events
+      .filter(note => note.startStep < endStep && note.startStep + note.durationSteps > startStep)
+      .map(note => {
+        const clippedStart = Math.max(note.startStep, startStep);
+        const clippedEnd = Math.min(note.startStep + note.durationSteps, endStep);
+        return { ...note, startStep: clippedStart - startStep, durationSteps: Math.max(1, clippedEnd - clippedStart) };
+      });
+    const notes = clip(converted.notes);
+    const drums = clip(converted.drums);
+    const options = { ...converted.options, bars };
+    parts.push({
+      part: partIndex + 1,
+      total_parts: partCount,
+      start_bar: startBar + 1,
+      end_bar: startBar + bars,
+      bars,
+      note_count: notes.length + drums.length,
+      options,
+      notes,
+      drums,
+      midi: createSongMakerMidi({ options, notes, drums, stepsPerBar }),
+    });
+  }
+
+  return {
+    options: converted.options,
+    summary: { ...converted.summary, partCount, partBars: MAX_BARS },
+    warnings: converted.summary.warnings,
+    parts,
   };
 }
 

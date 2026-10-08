@@ -35,13 +35,13 @@
         </div>
 
         <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose a MIDI file or drop it here" aria-describedby="file-help">
-          <input id="midi-file" type="file" aria-label="Choose MIDI file" accept=".mid,audio/midi,audio/x-midi" hidden>
+          <input id="midi-file" type="file" aria-label="Choose MIDI file" accept=".mid,.midi,audio/midi,audio/x-midi" hidden>
           <span class="upload-art" aria-hidden="true">
             <svg viewBox="0 0 48 48" fill="none"><path d="M15 34.5h-2.25a8.25 8.25 0 0 1-.8-16.46A12.5 12.5 0 0 1 36.35 21a7 7 0 0 1-.1 14h-3.5M24 38V23m0 0-5.5 5.5M24 23l5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
           <div class="drop-copy">
             <strong id="file-title">Drop a MIDI file here</strong>
-            <span id="file-help">or <span class="browse-link">browse files</span> · .mid</span>
+            <span id="file-help">or <span class="browse-link">browse files</span> · .mid / .midi</span>
           </div>
           <span class="file-chip" id="file-chip" hidden><span class="file-dot"></span><span id="file-name"></span><button id="remove-file" type="button" aria-label="Remove selected file">×</button></span>
         </div>
@@ -129,7 +129,7 @@
         <div class="limits-mark" aria-hidden="true">i</div>
         <div><h2 id="limits-title">A note about compatibility</h2>
           <p>KTK’s internal ZIP/JSON layout and 192 timing units per quarter are inferred from sample projects, not a full published specification. MIDI-to-KTK pitch mapping is provisional; app open/save round-trip compatibility has not been verified.</p>
-          <p>KTK note records do not store MIDI velocity, channel, track name, controllers, pitch bend, or timed program changes. Mid-song tempo, meter, and key changes are rejected rather than flattened. Supported files are Standard MIDI format 0/1 using PPQN timing, with up to eight note-bearing tracks.</p>
+          <p>KTK note records do not store MIDI velocity, channel, track name, controllers, pitch bend, or timed program changes. Mid-song tempo, meter, and key changes are rejected rather than flattened. Supported files are Standard MIDI format 0/1 using PPQN timing; excess tracks are combined into the eight available lanes without dropping notes. Auto-instrument mode cannot preserve more than eight distinct instrument groups.</p>
         </div>
       </section>
     </main>

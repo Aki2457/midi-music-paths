@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5ef">
+  <meta name="description" content="Split a long MIDI song into complete 16-bar parts for Song Maker, locally in your browser.">
+  <title>Song Maker MIDI Splitter — MIDI Music Paths</title>
+  <link rel="stylesheet" href="/local-tools.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="tool-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="MIDI Music Paths home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>MIDI MUSIC PATHS</span></a>
+      <span class="local-label">Runs in this browser</span>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Keep every bar</p>
+        <h1 id="page-title">Song Maker <span>parts</span></h1>
+        <p class="intro-copy">Song Maker supports up to 16 bars per song. Split a longer MIDI into a sequence of complete, 16-bar-or-shorter downloads. No upload or share link is created here.</p>
+      </section>
+      <section class="workspace" aria-label="Song Maker MIDI segmenter">
+        <label class="dropzone" id="dropzone" for="midi-file" tabindex="0" role="button" aria-describedby="file-note">
+          <input id="midi-file" type="file" accept=".mid,.midi,audio/midi,audio/x-midi">
+          <span class="upload-icon" aria-hidden="true">♫</span>
+          <span class="drop-copy"><strong>Choose or drop a MIDI file</strong><span>Standard MIDI format 0/1 · .mid and .midi</span></span>
+        </label>
+        <p class="file-note" id="file-note">Your file is parsed and converted locally.</p>
+        <div class="settings">
+          <label class="field" for="tempo">Output tempo (BPM)<input id="tempo" type="number" min="40" max="240" step="1" value="120"></label>
+          <label class="field" for="beats">Beats per bar<select id="beats"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option></select></label>
+          <label class="field" for="subdivision">Grid per beat<select id="subdivision"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+        </div>
+        <div class="action-row">
+          <p class="privacy-note">Local conversion only · no Google requests</p>
+          <button class="primary-button" id="convert" type="button" disabled>Split into Song Maker parts</button>
+        </div>
+        <div class="status" id="status" role="status" aria-live="polite" hidden></div>
+        <section class="result" id="result" aria-labelledby="result-title" hidden>
+          <div class="result-heading"><div><p class="eyebrow">Full-song export ready</p><h2 id="result-title">Your parts</h2></div><span class="local-label" id="part-count">0 parts</span></div>
+          <div class="stats" id="stats"></div>
+          <div class="part-grid" id="parts"></div>
+          <div class="local-warning" id="conversion-note"></div>
+          <p class="fine-print">Each download contains one consecutive part; later notes are kept in later files. To preview or create a Song Maker link, you would need to open Song Bridge yourself and select a part there. Song Bridge’s own send button is the separate action that transmits that selected part to Google.</p>
+          <p><a class="secondary-button" href="https://song-bridge-midi.vercel.app/" target="_blank" rel="noopener">Open Song Bridge <span aria-hidden="true">↗</span></a></p>
+        </section>
+      </section>
+    </main>
+    <footer class="page-footer"><a href="/">Back to MIDI Music Paths</a><span>Downloading parts does not share them.</span></footer>
+  </div>
+</body>
+</html>

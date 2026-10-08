@@ -9,12 +9,18 @@ A Chromebook-first workflow hub connecting the existing Song Bridge tool to a co
 
 - `index.html`, `style.css` — workflow guide and steps.
 - `samples/*.mid` — three original, small, Standard MIDI 0/1 examples with static tempo and no key-signature metadata.
-- `ktk-converter/` — a copy of the existing browser-only MIDI-to-KTK web app.
+- `ktk-converter/` — a browser-only MIDI-to-KTK converter. It accepts `.mid` and `.midi` files, combines overflow tracks into its eight lanes without dropping notes, and reports any tempo clamp.
 - `ktk-player/` — a copy of the existing standalone KTK player.
+- `midi-player/` — a local Web Audio MIDI player with seeking and speed control.
+- `song-maker/` — a local splitter that exports complete consecutive parts of up to 16 bars each.
 - `make_samples.py` — reproducible MIDI-example generator.
-- `test-support/song-maker-core.mjs` — Song Bridge converter core for the sample regression test.
-- `tests/` — verifies the examples parse and convert in both converter cores.
+- `test-support/song-maker-core.mjs` — MIDI parsing and Song Maker grid conversion/segmentation core.
+- `tests/` — parser, extension, track-merging, segmentation, and sample regression checks.
 - `vercel.json` — static-site response headers for Vercel hosting.
+
+## Hosted hub
+
+The permanent public site is [midi-music-paths.vercel.app](https://midi-music-paths.vercel.app/). Its source is maintained in a private GitHub repository.
 
 ## Run locally
 
@@ -28,6 +34,6 @@ Then open `http://localhost:8787`. No install or build step is needed.
 
 ## Verify sample MIDIs
 
-Run `node --test tests/sample-midis.test.mjs`. The test exercises the included Song Bridge and KTK conversion cores against all three downloadable examples.
+Run `node --test tests/*.test.mjs`. To include the eight locally supplied test files, set `MIDI_FIXTURE_DIR` to their directory, for example `MIDI_FIXTURE_DIR=/home/ubuntu/upload node --test tests/*.test.mjs`.
 
-The KTK converter and player process the selected file in the browser without uploading it. KTK compatibility, pitch mapping, timing, and browser-generated sound remain experimental.
+The KTK converter/player, MIDI player, and Song Maker splitter process files in the browser without uploading them. Song Maker exports are split into parts to avoid its 16-bar truncation; sending a part to Google and creating a share link remains a separate, user-controlled action in Song Bridge. KTK compatibility, pitch mapping, timing, and browser-generated sound remain experimental.

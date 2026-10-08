@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5ef">
+  <meta name="description" content="Play Standard MIDI files locally in your browser with a simple synthesized preview.">
+  <title>Browser MIDI Player — MIDI Music Paths</title>
+  <link rel="stylesheet" href="/local-tools.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <div class="tool-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="MIDI Music Paths home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>MIDI MUSIC PATHS</span></a>
+      <span class="local-label">Runs in this browser</span>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Listen without converting</p>
+        <h1 id="page-title">Browser <span>MIDI Player</span></h1>
+        <p class="intro-copy">Open a <code>.mid</code> or <code>.midi</code> file and listen to the whole song here. Playback is synthesized locally; the original MIDI is not uploaded.</p>
+      </section>
+      <section class="workspace" aria-label="Local MIDI player">
+        <label class="dropzone" id="dropzone" for="midi-file" tabindex="0" role="button" aria-describedby="file-note">
+          <input id="midi-file" type="file" accept=".mid,.midi,audio/midi,audio/x-midi">
+          <span class="upload-icon" aria-hidden="true">♫</span>
+          <span class="drop-copy"><strong>Choose or drop a MIDI file</strong><span>Standard MIDI format 0/1 · .mid and .midi</span></span>
+        </label>
+        <p class="file-note" id="file-note">Your file stays on this device.</p>
+        <div class="status" id="status" role="status" aria-live="polite" hidden></div>
+        <section class="result" id="player" aria-labelledby="player-title" hidden>
+          <div class="result-heading"><div><p class="eyebrow">Now loaded</p><h2 id="player-title">Ready to play</h2></div><span class="local-label" id="format-label">MIDI</span></div>
+          <div class="stats" id="stats"></div>
+          <canvas class="timeline" id="timeline" aria-label="Overview of notes across the MIDI song"></canvas>
+          <div class="transport" aria-label="Playback controls">
+            <button class="primary-button" id="play-pause" type="button" disabled>Play</button>
+            <button class="secondary-button" id="stop" type="button" disabled>Stop</button>
+            <label class="screen-reader-only" for="seek">Playback position</label>
+            <input class="range" id="seek" type="range" min="0" max="1" step="0.01" value="0" disabled>
+            <output class="time-readout" id="time-readout">0:00 / 0:00</output>
+          </div>
+          <label class="speed-row" for="speed">Playback speed <input id="speed" type="range" min="0.5" max="1.5" step="0.05" value="1"><output id="speed-readout">100%</output></label>
+          <p class="result-note">This is a lightweight synthesized preview, not the original MIDI instrument sound. Seek or change speed at any time.</p>
+        </section>
+      </section>
+    </main>
+    <footer class="page-footer"><a href="/">Back to MIDI Music Paths</a><span>Files are parsed and played locally on this device.</span></footer>
+  </div>
+</body>
+</html>

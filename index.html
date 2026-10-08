@@ -19,10 +19,10 @@
     <main id="top">
       <section class="hero" aria-labelledby="page-title">
         <div class="hero-copy">
-          <p class="eyebrow">ONE MIDI · TWO WAYS TO PLAY</p>
+          <p class="eyebrow">ONE MIDI · THREE WAYS TO LISTEN</p>
           <h1 id="page-title">Start with a MIDI.<br><span>Choose your music path.</span></h1>
-          <p class="lede">Try a ready-made example or use your own <code>.mid</code> file. Make a shareable Chrome Music Lab Song Maker song, or convert the MIDI into a <code>.ktk</code> project and preview it here.</p>
-          <div class="trust-row"><span><i></i>No install</span><span>Works in a browser</span><span>Simple file steps</span></div>
+          <p class="lede">Try an example or open your own <code>.mid</code> or <code>.midi</code> file. Play it here, prepare full-song Song Maker parts, or convert it into a <code>.ktk</code> project.</p>
+          <div class="trust-row"><span><i></i>No install</span><span>Local browser tools</span><span>.mid + .midi</span></div>
         </div>
         <div class="hero-art" aria-hidden="true">
           <div class="art-caption">YOUR MIDI</div>
@@ -54,19 +54,19 @@
       </section>
 
       <section class="paths" aria-labelledby="paths-title">
-        <div class="section-head path-heading"><div><p class="eyebrow">THEN, CHOOSE WHERE TO GO</p><h2 id="paths-title">Two paths, one starting file</h2></div><span class="step-note">Use the same downloaded MIDI for either path.</span></div>
+        <div class="section-head path-heading"><div><p class="eyebrow">THEN, CHOOSE WHERE TO GO</p><h2 id="paths-title">Two music destinations</h2></div><span class="step-note">Use the same downloaded MIDI for either path.</span></div>
         <div class="path-grid">
           <article class="path-card song-card">
             <div class="path-top"><span class="path-number">PATH 01</span><span class="path-icon" aria-hidden="true">♫</span></div>
             <h3>Make a Song Maker song</h3>
-            <p class="path-description">Turn your MIDI into a playable Chrome Music Lab song and share link.</p>
+            <p class="path-description">Prepare complete 16-bar parts locally. Creating a share link is a separate, optional action in Song Bridge.</p>
             <ol class="steps">
-              <li><b>Open Song Bridge</b><span>Choose the MIDI you downloaded, or another <code>.mid</code> file.</span></li>
-              <li><b>Check the preview</b><span>Adjust tempo or grid if you like. The preview happens in your browser.</span></li>
-              <li><b>Create the song link</b><span>Click <strong>Send MIDI to Google &amp; create link</strong>. This is the step that sends the converted MIDI and settings to Google.</span></li>
+              <li><b>Split long songs locally</b><span>Use the splitter for <code>.mid</code> or <code>.midi</code>; each download covers up to 16 bars.</span></li>
+              <li><b>Choose a part in Song Bridge</b><span>Preview locally and select a part to work with; later parts stay in their own files.</span></li>
+              <li><b>Sharing stays opt-in</b><span>Only Song Bridge’s separate <strong>Send MIDI to Google &amp; create link</strong> action sends anything to Google.</span></li>
             </ol>
-            <a class="action-button song-button" href="https://song-bridge-midi.vercel.app/" target="_blank" rel="noopener">Open Song Bridge <span aria-hidden="true">↗</span></a>
-            <p class="small-note">Song Maker has no MIDI import button; Song Bridge reshapes the notes for its grid. Long or complex songs may be simplified.</p>
+            <div class="button-row"><a class="action-button song-button" href="/song-maker/">Split into parts <span aria-hidden="true">↗</span></a><a class="action-button outline-button" href="https://song-bridge-midi.vercel.app/" target="_blank" rel="noopener">Open Song Bridge <span aria-hidden="true">↗</span></a></div>
+            <p class="small-note">The splitter keeps the whole timeline across sequential files. Grid conversion can still snap notes or shift octaves; review its report before using a part.</p>
           </article>
 
           <article class="path-card ktk-card">
@@ -74,24 +74,44 @@
             <h3>Convert to KTK and listen</h3>
             <p class="path-description">Make a <code>.ktk</code> project from a MIDI, then open it in the browser player.</p>
             <ol class="steps">
-              <li><b>Convert the MIDI</b><span>Open the KTK Converter, choose your MIDI, keep the recommended Pianica instrument, then choose <strong>Convert to .ktk</strong>.</span></li>
+              <li><b>Convert the MIDI</b><span>Open the KTK Converter, choose your <code>.mid</code> or <code>.midi</code> file, keep the recommended Pianica instrument, then choose <strong>Convert to .ktk</strong>.</span></li>
               <li><b>Save the project</b><span>Download the <code>.ktk</code> file. Leave it in Downloads so it is easy to find.</span></li>
               <li><b>Open and play</b><span>Open the KTK Player, choose the downloaded <code>.ktk</code>, then press Play.</span></li>
             </ol>
             <div class="button-row"><a class="action-button ktk-button" href="/ktk-converter/" target="_blank" rel="noopener">Open KTK Converter <span aria-hidden="true">↗</span></a><a class="action-button outline-button" href="/ktk-player/" target="_blank" rel="noopener">Open KTK Player <span aria-hidden="true">↗</span></a></div>
-            <p class="small-note">The player makes an experimental browser-synth preview, not Katokatone’s original sounds. Pitch and timing may be approximate.</p>
+            <p class="small-note">Excess tracks are combined into eight lanes without dropping notes. Source tempos outside 30–210 BPM are adjusted with a warning. KTK preview sounds remain experimental.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="paths tools-section" aria-labelledby="local-tools-title">
+        <div class="section-head path-heading"><div><p class="eyebrow">LISTEN AND PREPARE LOCALLY</p><h2 id="local-tools-title">Browser tools</h2></div><span class="step-note">No file upload for either tool.</span></div>
+        <div class="path-grid">
+          <article class="path-card">
+            <div class="path-top"><span class="path-number">LOCAL TOOL 01</span><span class="path-icon" aria-hidden="true">♫</span></div>
+            <h3>Play a MIDI in your browser</h3>
+            <p class="path-description">Open the complete MIDI song, seek through it, and change playback speed using a simple built-in synthesizer.</p>
+            <a class="action-button ktk-button" href="/midi-player/">Open MIDI Player <span aria-hidden="true">↗</span></a>
+            <p class="small-note">Works with Standard MIDI type 0/1 files in <code>.mid</code> or <code>.midi</code> format.</p>
+          </article>
+          <article class="path-card">
+            <div class="path-top"><span class="path-number">LOCAL TOOL 02</span><span class="path-icon" aria-hidden="true">▤</span></div>
+            <h3>Keep every bar</h3>
+            <p class="path-description">Split long songs into consecutive files sized for Song Maker’s 16-bar limit instead of losing everything after bar 16.</p>
+            <a class="action-button outline-button" href="/song-maker/">Open Song Maker Splitter <span aria-hidden="true">↗</span></a>
+            <p class="small-note">Parts download to your device; no Google upload or share link is created by this tool.</p>
           </article>
         </div>
       </section>
 
       <aside class="privacy-strip" aria-label="How your files are handled">
         <div class="privacy-icon" aria-hidden="true">◎</div>
-        <div><h2>Your file stays on your Chromebook until you choose otherwise</h2><p>The KTK converter and player work locally in the browser. Song Bridge also previews locally; only clicking its Google-send button sends the converted MIDI and settings to Google’s Song Maker save service to create a link.</p></div>
+        <div><h2>Your file stays on your device in the local tools</h2><p>The KTK converter/player, MIDI player, and Song Maker splitter work locally. Song Bridge previews locally too; only its separate Google-send button transmits the selected part to Google and creates a share link.</p></div>
       </aside>
 
       <section class="help" aria-labelledby="help-title">
         <p class="eyebrow">IF SOMETHING DOESN’T OPEN</p><h2 id="help-title">A quick check</h2>
-        <div class="help-grid"><p><b>Wrong file type?</b> Song Bridge and KTK Converter need a <code>.mid</code> MIDI file. The KTK Player needs a <code>.ktk</code> project—it cannot open MIDI directly.</p><p><b>File not showing?</b> In the Chromebook picker, select <strong>Downloads</strong>. If the download has not finished, wait and try again.</p><p><b>Unsupported MIDI?</b> Use a Standard MIDI type 0 or 1 file with regular musical timing. Very complex or unusual MIDI files may not convert cleanly.</p></div>
+        <div class="help-grid"><p><b>Wrong file type?</b> Local tools accept <code>.mid</code> and <code>.midi</code> MIDI files. The KTK Player opens a downloaded <code>.ktk</code> project.</p><p><b>File not showing?</b> In the Chromebook picker, select <strong>Downloads</strong>. If the download has not finished, wait and try again.</p><p><b>Unsupported MIDI?</b> Use Standard MIDI type 0 or 1 with PPQN timing. KTK conversion reports track merges and tempo adjustments; unusual mid-song tempo, meter, or key changes remain unsupported.</p></div>
       </section>
     </main>
 

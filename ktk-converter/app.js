@@ -1,4 +1,4 @@
-import { ConversionError, parseMidiBytes, convertMidiToKtk, encodeKtk, countProjectNotes } from './converter-core.js';
+import { ConversionError, parseMidiBytes, convertMidiToKtk, encodeKtk, countProjectNotes, isMidiFilename } from './converter-core.js';
 
 const $ = selector => document.querySelector(selector);
 const fileInput = $('#midi-file');
@@ -36,12 +36,12 @@ function setFile(file) {
   clearStatus();
   resetResult();
   if (!file) return;
-  if (!/\.mid$/i.test(file.name)) {
+  if (!isMidiFilename(file.name)) {
     selectedFile = null;
     fileInput.value = '';
     $('#file-chip').hidden = true;
     $('#file-title').textContent = 'Drop a MIDI file here';
-    showStatus('Please choose a Standard MIDI file with a .mid extension.', 'error');
+    showStatus('Please choose a Standard MIDI file with a .mid or .midi extension.', 'error');
     convertButton.disabled = true;
     return;
   }
@@ -59,7 +59,7 @@ function clearFile(event) {
   fileInput.value = '';
   $('#file-chip').hidden = true;
   $('#file-title').textContent = 'Drop a MIDI file here';
-  $('#file-help').innerHTML = 'or <span class="browse-link">browse files</span> · .mid';
+  $('#file-help').innerHTML = 'or <span class="browse-link">browse files</span> · .mid / .midi';
   convertButton.disabled = true;
   resetResult();
   clearStatus();
@@ -73,7 +73,7 @@ function updateInstrumentMode() {
     : 'The selected KTK preset is applied to each note-bearing MIDI track. Program changes are reported, not copied.';
 }
 
-function safeStem(name) { return name.replace(/\.mid$/i, '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim() || 'converted'; }
+function safeStem(name) { return name.replace(/\.midi?$/i, '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').trim() || 'converted'; }
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
