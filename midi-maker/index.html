@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5ef">
+  <meta name="description" content="Generate original Standard MIDI files in your browser for testing MIDI converters and music tools.">
+  <title>MIDI Maker — MIDI Music Paths</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/midi-maker/maker.css">
+</head>
+<body>
+  <div class="tool-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="MIDI Music Paths home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>MIDI MUSIC PATHS</span></a>
+      <a class="back-link" href="/">← All tools</a>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">MAKE A FILE · TEST YOUR MUSIC TOOLS</p>
+        <h1 id="page-title">Your next MIDI,<br><span>made to test.</span></h1>
+        <p class="intro-copy">Build an original melody, chord song, drum beat, or multi-track arrangement. Change the settings, make a variation, then download a real <code>.mid</code> file for Song Maker or KTK.</p>
+      </section>
+
+      <section class="workspace" aria-labelledby="settings-title">
+        <div class="workspace-heading">
+          <div><p class="eyebrow">01 · SHAPE YOUR MIDI</p><h2 id="settings-title">Choose your sound</h2></div>
+          <span class="local-label"><i></i> Made in your browser</span>
+        </div>
+
+        <div class="preset-block" aria-labelledby="preset-title">
+          <div class="subhead"><h3 id="preset-title">Quick test cases</h3><span>One tap fills in settings and generates a file.</span></div>
+          <div class="preset-row">
+            <button class="preset" type="button" data-preset="melody"><span class="preset-icon">♪</span><span><b>Simple melody</b><small>Type 0 · 4 bars</small></span></button>
+            <button class="preset" type="button" data-preset="ensemble"><span class="preset-icon">♫</span><span><b>Multi-track</b><small>Type 1 · 3 parts</small></span></button>
+            <button class="preset" type="button" data-preset="long"><span class="preset-icon">↗</span><span><b>Long song</b><small>20 bars · split test</small></span></button>
+            <button class="preset" type="button" data-preset="slow"><span class="preset-icon">◷</span><span><b>Slow tempo</b><small>30 BPM · lower limit</small></span></button>
+            <button class="preset" type="button" data-preset="fast"><span class="preset-icon">»</span><span><b>Fast tempo</b><small>210 BPM · upper limit</small></span></button>
+            <button class="preset" type="button" data-preset="tracks"><span class="preset-icon">▦</span><span><b>Many tracks</b><small>12 parts · lane merge</small></span></button>
+          </div>
+        </div>
+
+        <form id="settings-form">
+          <div class="settings-grid">
+            <label class="field">Music shape
+              <select name="style" id="style">
+                <option value="melody">Single melody</option>
+                <option value="chords">Chord progression</option>
+                <option value="ensemble">Melody, chords &amp; bass</option>
+                <option value="drums">Drum groove</option>
+                <option value="polyphony">Many test tracks</option>
+              </select>
+            </label>
+            <label class="field">Key
+              <select name="key" id="key">
+                <option value="0">C</option><option value="1">C♯ / D♭</option><option value="2">D</option>
+                <option value="3">D♯ / E♭</option><option value="4">E</option><option value="5">F</option>
+                <option value="6">F♯ / G♭</option><option value="7">G</option><option value="8">G♯ / A♭</option>
+                <option value="9">A</option><option value="10">A♯ / B♭</option><option value="11">B</option>
+              </select>
+            </label>
+            <label class="field">Scale
+              <select name="scale" id="scale"><option value="major">Major</option><option value="minor">Minor</option><option value="pentatonic">Pentatonic</option></select>
+            </label>
+            <label class="field">Tempo <span class="field-unit">BPM</span>
+              <input name="tempo" id="tempo" type="number" min="30" max="210" step="1" value="96" inputmode="numeric">
+            </label>
+            <label class="field">Length <span class="field-unit">bars</span>
+              <input name="bars" id="bars" type="number" min="1" max="32" step="1" value="4" inputmode="numeric">
+            </label>
+            <label class="field">Note density
+              <select name="density" id="density"><option value="1">Light</option><option value="2" selected>Balanced</option><option value="3">Busy</option></select>
+            </label>
+            <label class="field track-field" id="track-field" hidden>Number of tracks
+              <input name="trackCount" id="track-count" type="number" min="1" max="12" step="1" value="12" inputmode="numeric">
+              <small>Includes up to 12 separate musical parts.</small>
+            </label>
+          </div>
+          <div class="form-actions">
+            <p class="privacy-note"><b>Nothing is uploaded.</b> Your MIDI is created locally; each download is a standard 4/4 MIDI file.</p>
+            <button class="generate-button" type="submit"><span aria-hidden="true">✳</span> Generate MIDI</button>
+          </div>
+        </form>
+
+        <section class="result" id="result" aria-labelledby="result-title" aria-live="polite">
+          <div class="result-top">
+            <div><p class="eyebrow">02 · READY TO DOWNLOAD</p><h2 id="result-title">Your MIDI is ready</h2></div>
+            <span class="format-badge" id="format-badge">TYPE 0</span>
+          </div>
+          <div class="stats" id="stats"></div>
+          <canvas id="piano-roll" class="piano-roll" aria-label="Visual note preview"></canvas>
+          <div class="result-actions">
+            <button class="download-button" type="button" id="download" disabled>Download .mid <span aria-hidden="true">↓</span></button>
+            <button class="variation-button" type="button" id="variation">Make another variation <span aria-hidden="true">↻</span></button>
+            <a class="player-link" href="/midi-player/">Open MIDI Player <span aria-hidden="true">↗</span></a>
+          </div>
+          <p class="status" id="status" role="status">Change the settings above and generate a new file whenever you like.</p>
+          <div class="track-list" id="track-list" hidden></div>
+        </section>
+      </section>
+
+      <aside class="privacy-strip"><span class="privacy-icon" aria-hidden="true">◎</span><p><b>Your file stays yours.</b> Generation happens on this device. Choose a file in Song Maker, the KTK Converter, or the MIDI Player to test it there.</p></aside>
+    </main>
+
+    <footer class="page-footer"><a href="/">MIDI Music Paths</a><span>Original notes, ready for your next test.</span><a href="/song-maker/">Song Maker Splitter ↗</a></footer>
+  </div>
+  <script type="module" src="/midi-maker/app.js"></script>
+</body>
+</html>
